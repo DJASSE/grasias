@@ -7,77 +7,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, set, get, child, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAekz29R9IwY1pygd4Mic5AX8XZ7A7Z4Fs",
-      authDomain: "grasias-d7830.firebaseapp.com",
-      databaseURL: "https://grasias-d7830-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "grasias-d7830",
-      storageBucket: "grasias-d7830.appspot.com",
-      messagingSenderId: "134413476604",
-      appId: "1:134413476604:web:ab1acfa69c025218cbad79",
-      measurementId: "G-6QBYM41CJ1"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // متغيرات عامة
-    window.currentUser = null;
-    window.currentRole = null;
-    window.db = db;
-    window.auth = auth;
-
-    window.signInWithGoogle = () => {
-      const roleInput = document.querySelector('input[name="role"]:checked');
-      if (!roleInput) {
-        alert("يرجى اختيار الدور قبل تسجيل الدخول");
-        return;
-      }
-      window.currentRole = roleInput.value;
-
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          window.currentUser = user;
-          const userRef = ref(db, `users/${user.uid}`);
-
-          get(userRef).then((snapshot) => {
-            if (snapshot.exists()) {
-              const userData = snapshot.val();
-              window.currentRole = userData.role;
-              showPage("mapPage");
-              loadMap(user.displayName);
-              startLocationTracking();
-            } else {
-              set(userRef, {
-                name: user.displayName,
-                email: user.email,
-                role: window.currentRole,
-                createdAt: new Date().toISOString()
-              });
-              
-              if (window.currentRole === "rakib") {
-                showPage("passengerPage");
-              } else {
-                showPage("driverPage");
-              }
-            }
-          });
-        })
-        .catch((error) => {
-          console.error("خطأ في تسجيل الدخول:", error);
-          alert("فشل تسجيل الدخول: " + error.message);
-        });
-    };
-  </script>
-  
   <style>
     * {
       box-sizing: border-box;
@@ -124,7 +53,7 @@
       font-size: 24px;
     }
     
-    input, button, textarea {
+    input, button, textarea, select {
       width: 100%;
       padding: 15px;
       border-radius: 12px;
@@ -135,7 +64,7 @@
       font-family: 'Cairo', sans-serif;
     }
     
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: #667eea;
       outline: none;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -283,7 +212,6 @@
       display: none;
     }
 
-    /* أنماط جديدة للميزات المضافة */
     .driver-card {
       background: white;
       border-radius: 12px;
@@ -692,6 +620,84 @@
   </div>
 </div>
 
+<!-- تحميل مكتبات Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, get, child, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAekz29R9IwY1pygd4Mic5AX8XZ7A7Z4Fs",
+    authDomain: "grasias-d7830.firebaseapp.com",
+    databaseURL: "https://grasias-d7830-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "grasias-d7830",
+    storageBucket: "grasias-d7830.appspot.com",
+    messagingSenderId: "134413476604",
+    appId: "1:134413476604:web:ab1acfa69c025218cbad79",
+    measurementId: "G-6QBYM41CJ1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // جعل المتغيرات والدوال متاحة عالمياً
+  window.currentUser = null;
+  window.currentRole = null;
+  window.db = db;
+  window.auth = auth;
+  window.ref = ref;
+  window.set = set;
+  window.get = get;
+  window.update = update;
+  window.push = push;
+  window.onValue = onValue;
+
+  window.signInWithGoogle = () => {
+    const roleInput = document.querySelector('input[name="role"]:checked');
+    if (!roleInput) {
+      alert("يرجى اختيار الدور قبل تسجيل الدخول");
+      return;
+    }
+    window.currentRole = roleInput.value;
+
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        window.currentUser = user;
+        const userRef = ref(db, `users/${user.uid}`);
+
+        get(userRef).then((snapshot) => {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            window.currentRole = userData.role;
+            showPage("mapPage");
+            loadMap(user.displayName);
+            startLocationTracking();
+          } else {
+            set(userRef, {
+              name: user.displayName,
+              email: user.email,
+              role: window.currentRole,
+              createdAt: new Date().toISOString()
+            });
+            
+            if (window.currentRole === "rakib") {
+              showPage("passengerPage");
+            } else {
+              showPage("driverPage");
+            }
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("خطأ في تسجيل الدخول:", error);
+        alert("فشل تسجيل الدخول: " + error.message);
+      });
+  };
+</script>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
   let currentMap = null;
@@ -797,8 +803,6 @@
   function startLocationTracking() {
     if (!window.currentUser) return;
 
-    const locationRef = window.db.ref(`locations/${window.currentUser.uid}`);
-    
     // تحديث الموقع كل 10 ثوان
     setInterval(() => {
       if (navigator.geolocation && currentLocation) {
@@ -814,7 +818,7 @@
           };
 
           // تحديث الموقع في Firebase
-          window.db.ref(`locations/${window.currentUser.uid}`).set(newLocation);
+          window.set(window.ref(window.db, `locations/${window.currentUser.uid}`), newLocation);
           
           // تحديث الموقع المحلي
           currentLocation = { lat: newLocation.lat, lng: newLocation.lng };
@@ -840,8 +844,8 @@
 
   // مراقبة السائقين للركاب
   function watchDrivers() {
-    const driversRef = window.db.ref('locations');
-    driversRef.on('value', (snapshot) => {
+    const driversRef = window.ref(window.db, 'locations');
+    window.onValue(driversRef, (snapshot) => {
       const locations = snapshot.val();
       updateDriversOnMap(locations);
       updateDriversList(locations);
@@ -850,8 +854,8 @@
 
   // مراقبة الركاب للسائقين
   function watchPassengers() {
-    const passengersRef = window.db.ref('locations');
-    passengersRef.on('value', (snapshot) => {
+    const passengersRef = window.ref(window.db, 'locations');
+    window.onValue(passengersRef, (snapshot) => {
       const locations = snapshot.val();
       updatePassengersOnMap(locations);
     });
@@ -870,7 +874,8 @@
       if (location.role === 'sayeq' && location.status === 'available' && userId !== window.currentUser.uid) {
         const distance = calculateDistance(currentLocation, location);
         if (distance <= 10) { // السائقون في نطاق 10 كم
-          const marker = L.marker([location.lat, location.lng], { icon: driverIcon })
+          const marker = L.marker([location.lat, location.lng
+], { icon: driverIcon })
             .addTo(currentMap)
             .bindPopup(`🚗 ${location.name}<br>📍 المسافة: ${distance.toFixed(1)} كم`)
             .on('click', () => selectDriverFromMap(userId, location));
@@ -997,13 +1002,13 @@
     };
 
     // حفظ الطلب في Firebase
-    const tripRef = window.db.ref('tripRequests').push();
-    tripRef.set(tripRequest).then(() => {
+    const tripRef = window.push(window.ref(window.db, 'tripRequests'));
+    window.set(tripRef, tripRequest).then(() => {
       selectedDriver = driverId;
       showNotification('تم إرسال الطلب', `تم إرسال طلب الرحلة إلى السائق ${driverName}. في انتظار الرد...`, 'info');
       
       // مراقبة رد السائق
-      tripRef.on('value', (snapshot) => {
+      window.onValue(tripRef, (snapshot) => {
         const trip = snapshot.val();
         if (trip && trip.status === 'accepted') {
           showNotification('تم قبول الطلب! 🎉', `السائق ${driverName} وافق على طلبك. سيصل إليك خلال ${trip.estimatedTime || 'قريباً'}`, 'success');
@@ -1020,19 +1025,28 @@
   function watchTripRequests() {
     if (window.currentRole !== 'sayeq') return;
 
-    const requestsRef = window.db.ref('tripRequests');
-    requestsRef.on('child_added', (snapshot) => {
-      const request = snapshot.val();
-      if (request.driverId === window.currentUser.uid && request.status === 'pending') {
-        showTripRequestNotification(snapshot.key, request);
+    const requestsRef = window.ref(window.db, 'tripRequests');
+    window.onValue(requestsRef, (snapshot) => {
+      const requests = snapshot.val();
+      if (requests) {
+        Object.keys(requests).forEach(requestId => {
+          const request = requests[requestId];
+          if (request.driverId === window.currentUser.uid && request.status === 'pending') {
+            showTripRequestNotification(requestId, request);
+          }
+        });
       }
     });
   }
 
   // عرض إشعار طلب الرحلة للسائق
   function showTripRequestNotification(requestId, request) {
+    // تجنب عرض نفس الإشعار مرتين
+    if (document.querySelector(`[data-request-id="${requestId}"]`)) return;
+
     const notification = document.createElement('div');
     notification.className = 'notification';
+    notification.setAttribute('data-request-id', requestId);
     notification.innerHTML = `
       <div class="notification-title">طلب رحلة جديد! 🚗</div>
       <div class="notification-content">
@@ -1060,20 +1074,22 @@
 
   // قبول الرحلة
   function acceptTrip(requestId, passengerName) {
-    const requestRef = window.db.ref(`tripRequests/${requestId}`);
-    requestRef.update({
+    const requestRef = window.ref(window.db, `tripRequests/${requestId}`);
+    window.update(requestRef, {
       status: 'accepted',
       acceptedAt: Date.now(),
       estimatedTime: '10-15 دقيقة'
     }).then(() => {
       // إزالة الإشعار
-      const notifications = document.querySelectorAll('.notification');
-      notifications.forEach(n => n.remove());
+      const notification = document.querySelector(`[data-request-id="${requestId}"]`);
+      if (notification) notification.remove();
       
       // بدء الرحلة
-      requestRef.once('value', (snapshot) => {
+      window.get(requestRef).then((snapshot) => {
         const trip = snapshot.val();
-        startTrip(requestId, trip);
+        if (trip) {
+          startTrip(requestId, trip);
+        }
       });
       
       showNotification('تم قبول الرحلة', `تم قبول رحلة ${passengerName}. توجه إلى موقع الراكب.`, 'success');
@@ -1082,14 +1098,14 @@
 
   // رفض الرحلة
   function rejectTrip(requestId) {
-    const requestRef = window.db.ref(`tripRequests/${requestId}`);
-    requestRef.update({
+    const requestRef = window.ref(window.db, `tripRequests/${requestId}`);
+    window.update(requestRef, {
       status: 'rejected',
       rejectedAt: Date.now()
     }).then(() => {
       // إزالة الإشعار
-      const notifications = document.querySelectorAll('.notification');
-      notifications.forEach(n => n.remove());
+      const notification = document.querySelector(`[data-request-id="${requestId}"]`);
+      if (notification) notification.remove();
       
       showNotification('تم رفض الرحلة', 'تم رفض طلب الرحلة.', 'info');
     });
@@ -1132,33 +1148,20 @@
       currentMap.removeControl(routeControl);
     }
     
-    // استخدام Leaflet Routing Machine إذا كان متاحاً
-    if (typeof L.Routing !== 'undefined') {
-      routeControl = L.Routing.control({
-        waypoints: [
-          L.latLng(from.lat, from.lng),
-          L.latLng(to.lat, to.lng)
-        ],
-        routeWhileDragging: false,
-        addWaypoints: false,
-        createMarker: function() { return null; } // لا نريد علامات إضافية
-      }).addTo(currentMap);
-    } else {
-      // رسم خط مستقيم كبديل
-      const polyline = L.polyline([
-        [from.lat, from.lng],
-        [to.lat, to.lng]
-      ], { color: '#667eea', weight: 4 }).addTo(currentMap);
-      
-      // تكبير الخريطة لإظهار المسار
-      currentMap.fitBounds(polyline.getBounds());
-    }
+    // رسم خط مستقيم كبديل
+    const polyline = L.polyline([
+      [from.lat, from.lng],
+      [to.lat, to.lng]
+    ], { color: '#667eea', weight: 4 }).addTo(currentMap);
+    
+    // تكبير الخريطة لإظهار المسار
+    currentMap.fitBounds(polyline.getBounds());
   }
 
   // الاتصال بالسائق
   function callDriver(driverId) {
     // في التطبيق الحقيقي، ستحتاج لجلب رقم الهاتف من قاعدة البيانات
-    window.db.ref(`users/${driverId}`).once('value', (snapshot) => {
+    window.get(window.ref(window.db, `users/${driverId}`)).then((snapshot) => {
       const driverData = snapshot.val();
       if (driverData && driverData.phone) {
         window.open(`tel:${driverData.phone}`);
@@ -1176,6 +1179,9 @@
     chatTitle.textContent = `دردشة مع ${userName}`;
     chatContainer.style.display = 'flex';
     
+    // حفظ معرف المستخدم الآخر
+    selectedDriver = userId;
+    
     // تحميل الرسائل السابقة
     loadChatMessages(userId);
     
@@ -1191,9 +1197,9 @@
   // تحميل رسائل الدردشة
   function loadChatMessages(userId) {
     const chatId = [window.currentUser.uid, userId].sort().join('_');
-    const messagesRef = window.db.ref(`chats/${chatId}/messages`);
+    const messagesRef = window.ref(window.db, `chats/${chatId}/messages`);
     
-    messagesRef.once('value', (snapshot) => {
+    window.get(messagesRef).then((snapshot) => {
       const messages = snapshot.val();
       const chatMessages = document.getElementById('chatMessages');
       chatMessages.innerHTML = '';
@@ -1210,11 +1216,19 @@
   // مراقبة الرسائل الجديدة
   function watchChatMessages(userId) {
     const chatId = [window.currentUser.uid, userId].sort().join('_');
-    const messagesRef = window.db.ref(`chats/${chatId}/messages`);
+    const messagesRef = window.ref(window.db, `chats/${chatId}/messages`);
     
-    messagesRef.on('child_added', (snapshot) => {
-      const message = snapshot.val();
-      displayMessage(message);
+    window.onValue(messagesRef, (snapshot) => {
+      const messages = snapshot.val();
+      const chatMessages = document.getElementById('chatMessages');
+      chatMessages.innerHTML = '';
+      
+      if (messages) {
+        Object.keys(messages).forEach(messageId => {
+          const message = messages[messageId];
+          displayMessage(message);
+        });
+      }
     });
   }
 
@@ -1234,16 +1248,10 @@
     const chatInput = document.getElementById('chatInput');
     const messageText = chatInput.value.trim();
     
-    if (!messageText) return;
+    if (!messageText || !selectedDriver) return;
     
-    // الحصول على معرف المستخدم الآخر من عنوان الدردشة
-    const chatTitle = document.getElementById('chatTitle').textContent;
-    const otherUserId = selectedDriver; // أو يمكن تخزينه في متغير عام
-    
-    if (!otherUserId) return;
-    
-    const chatId = [window.currentUser.uid, otherUserId].sort().join('_');
-    const messageRef = window.db.ref(`chats/${chatId}/messages`).push();
+    const chatId = [window.currentUser.uid, selectedDriver].sort().join('_');
+    const messageRef = window.push(window.ref(window.db, `chats/${chatId}/messages`));
     
     const message = {
       senderId: window.currentUser.uid,
@@ -1252,7 +1260,7 @@
       timestamp: Date.now()
     };
     
-    messageRef.set(message).then(() => {
+    window.set(messageRef, message).then(() => {
       chatInput.value = '';
     });
   }
@@ -1286,9 +1294,9 @@
     if (window.currentRole !== 'sayeq' || !window.currentUser) return;
     
     const status = document.getElementById('driverStatus').value;
-    const locationRef = window.db.ref(`locations/${window.currentUser.uid}`);
+    const locationRef = window.ref(window.db, `locations/${window.currentUser.uid}`);
     
-    locationRef.update({ status: status });
+    window.update(locationRef, { status: status });
   }
 
   function validatePhone(phone) {
@@ -1317,8 +1325,8 @@
     }
     
     // حفظ معلومات الراكب في Firebase
-    const userRef = window.db.ref(`users/${window.currentUser.uid}`);
-    userRef.update({
+    const userRef = window.ref(window.db, `users/${window.currentUser.uid}`);
+    window.update(userRef, {
       phone: phone,
       fullName: name,
       profileComplete: true
@@ -1357,8 +1365,8 @@
     }
     
     // حفظ معلومات السائق في Firebase
-    const userRef = window.db.ref(`users/${window.currentUser.uid}`);
-    userRef.update({
+    const userRef = window.ref(window.db, `users/${window.currentUser.uid}`);
+    window.update(userRef, {
       phone: phone,
       fullName: name,
       carType: carType,
@@ -1437,7 +1445,8 @@
     if (confirm("هل أنت متأكد من تسجيل الخروج؟")) {
       // إزالة الموقع من قاعدة البيانات
       if (window.currentUser) {
-        window.db.ref(`locations/${window.currentUser.uid}`).remove();
+        const locationRef = window.ref(window.db, `locations/${window.currentUser.uid}`);
+        window.set(locationRef, null);
       }
       
       localStorage.clear();
@@ -1468,11 +1477,14 @@
     });
 
     // إضافة مستمع لإرسال الرسائل بالضغط على Enter
-    document.getElementById('chatInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    }
   });
 </script>
 
