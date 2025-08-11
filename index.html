@@ -88,6 +88,14 @@ button:active {
 transform: translateY(0);
 }
 
+.facebook-btn {
+background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
+}
+
+.facebook-btn:hover {
+box-shadow: 0 8px 25px rgba(24, 119, 242, 0.3);
+}
+
 .choice {
 text-align: right;
 margin: 25px 0;
@@ -612,7 +620,7 @@ max-width: none;
 <span>🧍‍♀️ راكب</span>
 </label>
 </div>
-<button onclick="signInWithGoogle()">🔐 تسجيل الدخول باستخدام Google</button>
+<button class="facebook-btn" onclick="signInWithFacebook()">📘 تسجيل الدخول باستخدام Facebook</button>
 </div>
 
 <!-- صفحة معلومات الراكب -->
@@ -749,7 +757,7 @@ max-width: none;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, child, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyAekz29R9IwY1pygd4Mic5AX8XZ7A7Z4Fs",
@@ -765,7 +773,11 @@ measurementId: "G-6QBYM41CJ1"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+const provider = new FacebookAuthProvider();
+
+// إضافة صلاحيات Facebook
+provider.addScope('email');
+provider.addScope('public_profile');
 
 // جعل المتغيرات والدوال متاحة عالمياً
 window.currentUser = null;
@@ -780,7 +792,7 @@ window.push = push;
 window.onValue = onValue;
 window.remove = remove;
 
-window.signInWithGoogle = () => {
+window.signInWithFacebook = () => {
 const roleInput = document.querySelector('input[name="role"]:checked');
 if (!roleInput) {
 alert("يرجى اختيار الدور قبل تسجيل الدخول");
@@ -793,6 +805,10 @@ signInWithPopup(auth, provider)
 .then((result) => {
 const user = result.user;
 window.currentUser = user;
+
+// الحصول على معلومات إضافية من Facebook
+const credential = FacebookAuthProvider.credentialFromResult(result);
+const accessToken = credential.accessToken;
 
 const userRef = ref(db, `users/${user.uid}`);
 get(userRef).then((snapshot) => {
@@ -807,6 +823,8 @@ set(userRef, {
 name: user.displayName,
 email: user.email,
 role: window.currentRole,
+facebookId: user.providerData[0].uid,
+photoURL: user.photoURL,
 createdAt: new Date().toISOString()
 });
 
@@ -820,7 +838,34 @@ showPage("driverPage");
 })
 .catch((error) => {
 console.error("خطأ في تسجيل الدخول:", error);
-alert("فشل تسجيل الدخول: " + error.message);
+let errorMessage = "فشل تسجيل الدخول";
+
+switch(error.code) {
+case 'auth/account-exists-with-different-credential':
+errorMessage = "يوجد حساب بنفس البريد الإلكتروني مع مزود آخر";
+break;
+case 'auth/auth-domain-config-required':
+errorMessage = "إعداد المجال مطلوب";
+break;
+case 'auth/cancelled-popup-request':
+errorMessage = "تم إلغاء طلب تسجيل الدخول";
+break;
+case 'auth/operation-not-allowed':
+errorMessage = "تسجيل الدخول بـ Facebook غير مفعل";
+break;
+case 'auth/popup-blocked':
+errorMessage = "تم حظر النافذة المنبثقة";
+break;
+case 'auth/popup-closed-by-user':
+errorMessage = "تم إغلاق النافذة من قبل المستخدم";
+break;
+case 'auth/unauthorized-domain':
+errorMessage = "المجال غير مصرح به";
+break;
+default:
+errorMessage = error.message;
+}
+alert(errorMessage);
 });
 };
 </script>
@@ -927,6 +972,7 @@ destination: destination
 }
 }
 
+// حساب ثمن المسافة
 // حساب ثمن المسافة
 function calculatePrice() {
 const distance = parseFloat(document.getElementById('distanceInput').value);
@@ -1613,4 +1659,3 @@ sendMessage();
 </script>
 </body>
 </html>
-
