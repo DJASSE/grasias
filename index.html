@@ -4,146 +4,998 @@
   <meta charset="utf-8" />
   <title>DJASSER EASY CHAT</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#071025; --card:#0f1724; --accent:#00d1b2; --accent2:#3b82f6; --muted:#9aa6bf;
-      --danger:#ff4d4f;
+    :root {
+      --bg: #0a0e1a;
+      --bg2: #0f1629;
+      --card: #141c2e;
+      --card2: #1a2340;
+      --accent: #6c63ff;
+      --accent2: #00d2ff;
+      --accent3: #ff6584;
+      --success: #00c896;
+      --warning: #ffb347;
+      --danger: #ff4757;
+      --text: #e8eaf6;
+      --text2: #a0aec0;
+      --border: rgba(108, 99, 255, 0.2);
+      --glow: rgba(108, 99, 255, 0.15);
+      --msg-me: linear-gradient(135deg, #6c63ff, #00d2ff);
+      --msg-other: #1a2340;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --radius: 16px;
+      --radius-sm: 10px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Tahoma,Arial;background:linear-gradient(135deg,var(--bg),#051029);color:#fff;direction:rtl}
-    header{padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02)}
-    .nav {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .nav button{padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#000;cursor:pointer;transition:transform 0.2s}
-    .nav button:hover{transform:scale(1.05)}
-    main{max-width:1100px;margin:18px auto;padding:12px}
-    
-    /* Added fade transition for smoother page navigation */
-    .page{display:none; opacity: 0; transition: opacity 0.3s ease-in-out; background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
-    .page.active{display:block; opacity: 1;}
-    
-    h2{margin:0 0 8px 0;color:var(--accent)}
-    label{display:block;margin-top:8px;color:var(--muted)}
-    input,select,button,textarea{width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:#fff}
-    button:disabled{opacity:0.6;cursor:not-allowed}
-    button.gray{background:#333;color:#fff}
-    .users-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-    .user-row{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
-    .meta{flex:1}
-    #chat-box{height:56vh;overflow:auto;padding:12px;background:rgba(0,0,0,0.06);border-radius:8px;scroll-behavior:smooth}
-    .msg{margin:8px 0;padding:10px;border-radius:12px;max-width:76%;word-break:break-word}
-    .me{background:linear-gradient(90deg,var(--accent),#00f6d0);color:#000;margin-left:auto;text-align:right}
-    .other{background:#1b2638;color:#fff;margin-right:auto;text-align:left}
-    .muted{color:var(--muted);font-size:13px}
-    .controls{display:flex;gap:8px;margin-top:8px;align-items:center}
-    .small{padding:8px;font-size:13px}
-    .incoming-call{position:fixed;left:22px;bottom:22px;background:#111;padding:14px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.6);display:none;z-index:999}
-    .hidden{display:none}
-    img,video,audio{max-width:320px;border-radius:8px;margin-top:6px}
-    .badge{background:var(--danger);color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px;font-size:12px}
-    footer.note{max-width:1100px;margin:12px auto;color:var(--muted);font-size:13px;text-align:center}
-    @media(max-width:900px){body{padding:8px} header{flex-direction:column;align-items:flex-start}}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Cairo', Tahoma, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      direction: rtl;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,210,255,0.06) 0%, transparent 50%);
+    }
+
+    /* ============= SCROLLBAR ============= */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+    /* ============= HEADER ============= */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 26, 0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(108,99,255,0.4);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text2);
+      font-weight: 300;
+    }
+
+    /* ============= NAV ============= */
+    .nav {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav button {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.04);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav button:hover {
+      background: rgba(108, 99, 255, 0.15);
+      border-color: var(--border);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .nav button.active-nav {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(108,99,255,0.35);
+    }
+
+    .nav button.gray {
+      background: rgba(255,71,87,0.1);
+      border-color: rgba(255,71,87,0.2);
+      color: var(--danger);
+    }
+    .nav button.gray:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* ============= BADGE ============= */
+    .badge {
+      background: var(--danger);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .hidden { display: none !important; }
+
+    /* ============= MAIN ============= */
+    main {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+
+    /* ============= PAGES ============= */
+    .page {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .page.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============= CARDS ============= */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ============= PAGE TITLES ============= */
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .page-title .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .page-title .icon.purple { background: rgba(108,99,255,0.15); }
+    .page-title .icon.blue   { background: rgba(0,210,255,0.15); }
+    .page-title .icon.green  { background: rgba(0,200,150,0.15); }
+    .page-title .icon.orange { background: rgba(255,179,71,0.15); }
+    .page-title .icon.pink   { background: rgba(255,101,132,0.15); }
+
+    .page-subtitle {
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 400;
+      padding-right: 54px;
+    }
+
+    /* ============= FORM ELEMENTS ============= */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    }
+
+    input::placeholder { color: rgba(160, 174, 192, 0.5); }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--card2);
+      color: var(--text);
+      padding: 8px;
+    }
+
+    /* ============= BUTTONS ============= */
+    button {
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      outline: none;
+      border: none;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.35);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(255,71,87,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(255,71,87,0.3);
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-success {
+      background: rgba(0, 200, 150, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(0, 200, 150, 0.3);
+    }
+    .btn-success:hover {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-sm { padding: 8px 16px; font-size: 12px; border-radius: 8px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* ============= LOGIN PAGE ============= */
+    .login-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .login-left { }
+
+    .login-right {
+      background: rgba(108, 99, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .login-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .login-btns button {
+      flex: 1;
+    }
+
+    .divider {
+      text-align: center;
+      color: var(--text2);
+      font-size: 12px;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider::before { right: 0; }
+    .divider::after { left: 0; }
+
+    /* ============= SEARCH INPUT ============= */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .search-wrap .search-icon {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text2);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      padding-right: 44px;
+    }
+
+    /* ============= USER ROWS ============= */
+    .users-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .user-row:hover {
+      background: rgba(108, 99, 255, 0.08);
+      border-color: var(--border);
+    }
+
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .user-info { flex: 1; min-width: 0; }
+    .user-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .user-lang {
+      font-size: 12px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .user-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============= REQUESTS LIST ============= */
+    #requestsList { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ============= EMPTY STATE ============= */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text2);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+      display: block;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    /* ============= CHAT PAGE ============= */
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .chat-main { }
+
+    .chat-sidebar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      position: sticky;
+      top: 84px;
+    }
+
+    .chat-sidebar-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text2);
+      margin-bottom: 12px;
+    }
+
+    /* ============= CHAT BOX ============= */
+    .chat-header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .chat-header-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .chat-header-info { flex: 1; }
+
+    #chat-box {
+      height: 50vh;
+      overflow-y: auto;
+      padding: 20px;
+      background: rgba(0,0,0,0.15);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      scroll-behavior: smooth;
+    }
+
+    .chat-input-area {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 16px 20px;
+    }
+
+    /* ============= MESSAGES ============= */
+    .msg {
+      max-width: 72%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      word-break: break-word;
+      line-height: 1.6;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .me {
+      background: linear-gradient(135deg, var(--accent), #5b54e8);
+      color: #fff;
+      margin-left: auto;
+      border-radius: 16px 16px 4px 16px;
+      box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+    }
+
+    .other {
+      background: var(--card2);
+      color: var(--text);
+      margin-right: auto;
+      border-radius: 16px 16px 16px 4px;
+      border: 1px solid var(--border);
+    }
+
+    .msg .msg-sender {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .msg .msg-time {
+      font-size: 10px;
+      opacity: 0.5;
+      margin-top: 4px;
+      text-align: left;
+    }
+
+    .msg-translate {
+      font-size: 12px;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border-right: 3px solid var(--accent2);
+      color: rgba(255,255,255,0.75);
+    }
+
+    .msg-original {
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .speak-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 12px;
+      color: inherit;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .speak-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    img, video, audio {
+      max-width: 280px;
+      border-radius: 10px;
+      margin-top: 8px;
+      display: block;
+    }
+
+    audio { max-width: 100%; }
+
+    /* ============= CONTROLS ============= */
+    .msg-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .msg-controls input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+    }
+
+    .file-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .file-controls input[type="file"] {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    /* ============= CALL SECTION ============= */
+    .call-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .call-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    /* ============= INCOMING CALL ============= */
+    .incoming-call {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      background: var(--card);
+      border: 1px solid rgba(0, 200, 150, 0.4);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 3px rgba(0, 200, 150, 0.1);
+      display: none;
+      z-index: 999;
+      min-width: 260px;
+      animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .incoming-call .call-pulse {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--success), #00a67e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 12px;
+      animation: pulse 1s infinite;
+      box-shadow: 0 0 0 0 rgba(0, 200, 150, 0.4);
+    }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(0, 200, 150, 0.4); }
+      70%  { box-shadow: 0 0 0 12px rgba(0, 200, 150, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 200, 150, 0); }
+    }
+
+    .incoming-call .caller-name {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .incoming-call .caller-sub {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 16px;
+    }
+
+    .call-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .call-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* ============= LANG CHIPS ============= */
+    .lang-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(108, 99, 255, 0.15);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ============= STATUS INDICATOR ============= */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 5px;
+    }
+    .status-dot.online  { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .status-dot.offline { background: var(--text2); }
+
+    /* ============= FOOTER ============= */
+    footer.note {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 20px 20px;
+      color: var(--text2);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* ============= RESPONSIVE ============= */
+    @media (max-width: 900px) {
+      .login-grid { grid-template-columns: 1fr; }
+      .chat-layout { grid-template-columns: 1fr; }
+      .chat-sidebar { position: static; }
+      header { padding: 0 16px; }
+      main { padding: 0 14px; margin: 18px auto; }
+    }
+
+    @media (max-width: 600px) {
+      .nav button span { display: none; }
+      .nav button { padding: 8px 10px; }
+    }
   </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
+
+<!-- ============= HEADER ============= -->
 <header>
-  <div>
-    <strong>دردشة مترجمة متكاملة</strong><br>
-    <span class="muted">تشغيل محلي: استخدم Chrome/Edge لتجربة الصوت والـWebRTC</span>
+  <div class="header-brand">
+    <div class="brand-logo">💬</div>
+    <div class="brand-text">
+      <span class="brand-name">DJASSER CHAT</span>
+      <span class="brand-sub">دردشة مترجمة فورية</span>
+    </div>
   </div>
   <div class="nav">
-    <button id="navLogin">🔐 تسجيل</button>
-    <button id="navSearch">🔍 بحث</button>
-    <button id="navRequests">📨 إشعارات <span id="reqBadge" class="badge hidden">0</span></button>
-    <button id="navFriends">👥 أصدقائي</button>
-    <button id="navChat">💬 دردشة</button>
-    <button id="navLogout" class="gray hidden">خروج</button>
+    <button id="navLogin"><span>🔐</span> <span>تسجيل</span></button>
+    <button id="navSearch"><span>🔍</span> <span>بحث</span></button>
+    <button id="navRequests"><span>📨</span> <span>إشعارات</span> <span id="reqBadge" class="badge hidden">0</span></button>
+    <button id="navFriends"><span>👥</span> <span>أصدقائي</span></button>
+    <button id="navChat"><span>💬</span> <span>دردشة</span></button>
+    <button id="navLogout" class="gray hidden"><span>🚪</span> <span>خروج</span></button>
   </div>
 </header>
 
 <main>
-  <!-- LOGIN PAGE -->
+
+  <!-- ============= LOGIN PAGE ============= -->
   <section id="pageLogin" class="page active">
-    <h2>🔐 تسجيل / اختيار اللغة</h2>
-    <label>اسم المستخدم</label>
-    <input id="username" placeholder="اكتب اسمك...">
-    <label>ابحث لغة (اكتب للبحث)</label>
-    <input id="langSearch" placeholder="ابحث باسم اللغة...">
-    <label>اختر لغة التحدث (تـُحفظ عند التسجيل)</label>
-    <select id="langSelect" size="6" style="height:160px"></select>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="loginBtn">دخول</button>
-      <button id="guestBtn" class="gray">دخول كزائر</button>
+    <div class="card">
+      <div class="page-header">
+        <div class="page-title">
+          <div class="icon purple">🔐</div>
+          تسجيل الدخول
+        </div>
+        <p class="page-subtitle">أنشئ حسابك واختر لغتك المفضلة لبدء الدردشة المترجمة</p>
+      </div>
+
+      <div class="login-grid">
+        <div class="login-left">
+          <div class="form-group">
+            <label class="form-label">اسم المستخدم</label>
+            <input id="username" placeholder="أكتب اسمك هنا..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">ابحث عن لغتك</label>
+            <div class="search-wrap">
+              <span class="search-icon">🌐</span>
+              <input id="langSearch" placeholder="اكتب اسم اللغة للبحث..." />
+            </div>
+          </div>
+          <div class="login-btns">
+            <button id="loginBtn" class="btn btn-primary">
+              <span>🚀</span> دخول
+            </button>
+            <button id="guestBtn" class="btn btn-secondary">
+              <span>👤</span> دخول كزائر
+            </button>
+          </div>
+        </div>
+
+        <div class="login-right">
+          <div class="form-label" style="margin-bottom:12px">اختر لغة التحدث</div>
+          <select id="langSelect" size="8" style="height:200px; padding: 0;"></select>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- SEARCH PAGE -->
+  <!-- ============= SEARCH PAGE ============= -->
   <section id="pageSearch" class="page">
-    <h2>🔍 بحث عن مستخدم</h2>
-    <div class="muted">ابحث باسم المستخدم ثم أرسل طلب صداقة</div>
-    <input id="userSearch" placeholder="ابحث باسم المستخدم...">
-    <div id="userResults" class="users-list"></div>
+    <div class="card">
+      <div class="page-header">
+        <div class="page-title">
+          <div class="icon blue">🔍</div>
+          البحث عن مستخدمين
+        </div>
+        <p class="page-subtitle">ابحث عن مستخدمين وأرسل إليهم طلب صداقة للبدء بالدردشة</p>
+      </div>
+
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="userSearch" placeholder="ابحث باسم المستخدم..." />
+      </div>
+
+      <div id="userResults" class="users-list">
+        <div class="empty-state">
+          <span class="empty-icon">🔎</span>
+          <p>ابدأ بكتابة اسم للبحث</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- REQUESTS PAGE -->
+  <!-- ============= REQUESTS PAGE ============= -->
   <section id="pageRequests" class="page">
-    <h2>📨 طلبات واردة</h2>
-    <div id="requestsList"></div>
+    <div class="card">
+      <div class="page-header">
+        <div class="page-title">
+          <div class="icon orange">📨</div>
+          طلبات الصداقة
+        </div>
+        <p class="page-subtitle">إدارة طلبات الصداقة الواردة</p>
+      </div>
+
+      <div id="requestsList">
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <p>لا توجد طلبات واردة</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- FRIENDS PAGE -->
+  <!-- ============= FRIENDS PAGE ============= -->
   <section id="pageFriends" class="page">
-    <h2>👥 أصدقائي</h2>
-    <div id="friendsList" class="users-list"></div>
+    <div class="card">
+      <div class="page-header">
+        <div class="page-title">
+          <div class="icon green">👥</div>
+          قائمة الأصدقاء
+        </div>
+        <p class="page-subtitle">أصدقاؤك المتصلون - ابدأ دردشة أو مكالمة مباشرة</p>
+      </div>
+
+      <div id="friendsList" class="users-list">
+        <div class="empty-state">
+          <span class="empty-icon">👤</span>
+          <p>أضف أصدقاء من صفحة البحث</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- CHAT PAGE -->
+  <!-- ============= CHAT PAGE ============= -->
   <section id="pageChat" class="page">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <h2 id="chatTitle">💬 لا يوجد محادثة</h2>
-        <div id="chatSubtitle" class="muted">اختر صديقاً من صفحة "أصدقائي" لبدء</div>
+    <div class="chat-layout">
+
+      <!-- Main Chat -->
+      <div class="chat-main">
+        <div class="chat-header">
+          <div class="chat-header-avatar" id="chatAvatar">💬</div>
+          <div class="chat-header-info">
+            <div id="chatTitle" style="font-size:16px;font-weight:700;">اختر محادثة</div>
+            <div id="chatSubtitle" style="font-size:12px;color:var(--text2);">اختر صديقاً من قائمة الأصدقاء للبدء</div>
+          </div>
+          <button id="endCallBtn" class="btn btn-danger btn-sm hidden">📵 إنهاء</button>
+        </div>
+
+        <div id="chat-box">
+          <div class="empty-state" style="height:100%;display:flex;flex-direction:column;justify-content:center;">
+            <span class="empty-icon">💬</span>
+            <p>لا توجد رسائل بعد</p>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="msg-controls">
+            <input id="msgInput" placeholder="اكتب رسالتك هنا..." />
+            <button id="sendBtn" class="btn btn-primary btn-sm">إرسال ↑</button>
+          </div>
+
+          <div class="file-controls">
+            <input type="file" id="fileInput" accept="image/*,video/*" style="flex:1;min-width:100px;" />
+            <button id="sendFileBtn" class="btn btn-secondary btn-sm">📎 إرسال</button>
+            <button id="recordVoiceBtn" class="btn btn-secondary btn-sm">🎤 تسجيل</button>
+          </div>
+
+          <div class="call-section">
+            <div class="call-section-title">📞 مكالمة صوتية مترجمة</div>
+            <div style="color:var(--text2);font-size:12px;">اضغط "مكالمة" من قائمة الأصدقاء لبدء مكالمة صوتية فورية مع الترجمة.</div>
+          </div>
+        </div>
       </div>
-      <div style="width:260px">
-        <label>تبديل لغتي داخل الدردشة</label>
-        <select id="chatLangSelect" size="4" style="height:90px"></select>
+
+      <!-- Sidebar -->
+      <div class="chat-sidebar">
+        <div class="chat-sidebar-title">🌐 لغتي</div>
+        <select id="chatLangSelect" size="6" style="height:140px;padding:0;margin-bottom:14px;"></select>
+        <div style="margin-top:4px;">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">اللغة الحالية:</div>
+          <div id="currentLangLabel" class="lang-chip">—</div>
+        </div>
       </div>
-    </div>
 
-    <div id="chat-box"></div>
-
-    <div class="controls">
-      <input id="msgInput" placeholder="اكتب رسالتك..." />
-      <button id="sendBtn" class="small">إرسال</button>
-    </div>
-
-    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-      <input type="file" id="fileInput" accept="image/*,video/*">
-      <button id="sendFileBtn" class="small">إرسال ملف</button>
-      <button id="recordVoiceBtn" class="small">🎤 تسجيل صوتي (إرسال)</button>
-      <button id="playVoiceBtn" class="small hidden">▶️ تشغيل صوتي</button>
-      <div style="flex:1"></div>
-      <div class="muted">لغتي الحالية: <span id="currentLangLabel">—</span></div>
-    </div>
-
-    <hr style="opacity:0.06;margin:12px 0">
-    <h2>📞 مكالمات صوتية مترجمة</h2>
-    <div class="muted">اضغط "مكالمة" من صفحة الأصدقاء لبدء مكالمة صوتية فورية.</div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="endCallBtn" class="gray small hidden">إنهاء المكالمة</button>
     </div>
   </section>
+
 </main>
 
-<!-- Incoming call modal -->
+<!-- ============= INCOMING CALL ============= -->
 <div id="incomingCall" class="incoming-call">
-  <div id="callerTxt" style="margin-bottom:8px">📞 اتصال وارد</div>
-  <div style="display:flex;gap:8px">
-    <button id="answerBtn">📥 رد</button>
-    <button id="rejectBtn" class="gray">❌ رفض</button>
+  <div class="call-pulse">📞</div>
+  <div id="callerTxt" class="caller-name">مكالمة واردة</div>
+  <div class="caller-sub">يريد التحدث معك</div>
+  <div class="call-actions">
+    <button id="answerBtn" class="btn-success">✅ رد</button>
+    <button id="rejectBtn" class="btn-danger">❌ رفض</button>
   </div>
 </div>
 
-<footer class="note">مثال تعليمي — عدّل قواعد Firebase قبل النشر. استخدم Chrome/Edge لتجرب الميزات الصوتية.</footer>
+<footer class="note">
+  💡 مثال تعليمي — استخدم Chrome/Edge للحصول على أفضل تجربة مع الصوت والـWebRTC
+</footer>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -152,7 +1004,7 @@
 
 <script>
 /* ============================================================
-   ملف واحد شامل: صفحات داخلية + Firebase + WebRTC + Speech
+   DJASSER EASY CHAT - Full Application Logic
    ============================================================ */
 
 /* ================= CONFIG ================= */
@@ -182,8 +1034,7 @@ let currentUser = null;
 let userLang = "ar";
 let currentPeer = null;
 let currentChatId = null;
-
-let pc = null;                 
+let pc = null;
 let localStream = null;
 let recognition = null;
 let isInCall = false;
@@ -198,93 +1049,107 @@ const pages = {
   friends: document.getElementById("pageFriends"),
   chat: document.getElementById("pageChat")
 };
-const navLogin = document.getElementById("navLogin");
-const navSearch = document.getElementById("navSearch");
+const navLogin    = document.getElementById("navLogin");
+const navSearch   = document.getElementById("navSearch");
 const navRequests = document.getElementById("navRequests");
-const navFriends = document.getElementById("navFriends");
-const navChat = document.getElementById("navChat");
-const navLogout = document.getElementById("navLogout");
-const reqBadge = document.getElementById("reqBadge");
+const navFriends  = document.getElementById("navFriends");
+const navChat     = document.getElementById("navChat");
+const navLogout   = document.getElementById("navLogout");
+const reqBadge    = document.getElementById("reqBadge");
 
-const usernameEl = document.getElementById("username");
+const usernameEl   = document.getElementById("username");
 const langSearchEl = document.getElementById("langSearch");
 const langSelectEl = document.getElementById("langSelect");
-const loginBtn = document.getElementById("loginBtn");
-const guestBtn = document.getElementById("guestBtn");
+const loginBtn     = document.getElementById("loginBtn");
+const guestBtn     = document.getElementById("guestBtn");
 
-const userSearchEl = document.getElementById("userSearch");
-const userResultsEl = document.getElementById("userResults");
+const userSearchEl   = document.getElementById("userSearch");
+const userResultsEl  = document.getElementById("userResults");
 const requestsListEl = document.getElementById("requestsList");
-const friendsListEl = document.getElementById("friendsList");
+const friendsListEl  = document.getElementById("friendsList");
 
-const chatBoxEl = document.getElementById("chat-box");
-const chatTitleEl = document.getElementById("chatTitle");
-const chatSubtitleEl = document.getElementById("chatSubtitle");
-const msgInputEl = document.getElementById("msgInput");
-const sendBtnEl = document.getElementById("sendBtn");
-const fileInputEl = document.getElementById("fileInput");
-const sendFileBtnEl = document.getElementById("sendFileBtn");
-const recordVoiceBtn = document.getElementById("recordVoiceBtn");
-const playVoiceBtn = document.getElementById("playVoiceBtn");
-const chatLangSelect = document.getElementById("chatLangSelect");
-const currentLangLabel = document.getElementById("currentLangLabel");
-const endCallBtn = document.getElementById("endCallBtn");
+const chatBoxEl       = document.getElementById("chat-box");
+const chatTitleEl     = document.getElementById("chatTitle");
+const chatSubtitleEl  = document.getElementById("chatSubtitle");
+const chatAvatarEl    = document.getElementById("chatAvatar");
+const msgInputEl      = document.getElementById("msgInput");
+const sendBtnEl       = document.getElementById("sendBtn");
+const fileInputEl     = document.getElementById("fileInput");
+const sendFileBtnEl   = document.getElementById("sendFileBtn");
+const recordVoiceBtn  = document.getElementById("recordVoiceBtn");
+const chatLangSelect  = document.getElementById("chatLangSelect");
+const currentLangLbl  = document.getElementById("currentLangLabel");
+const endCallBtn      = document.getElementById("endCallBtn");
 
-const incomingCallEl = document.getElementById("incomingCall");
-const callerTxtEl = document.getElementById("callerTxt");
-const answerBtn = document.getElementById("answerBtn");
-const rejectBtn = document.getElementById("rejectBtn");
+const incomingCallEl  = document.getElementById("incomingCall");
+const callerTxtEl     = document.getElementById("callerTxt");
+const answerBtn       = document.getElementById("answerBtn");
+const rejectBtn       = document.getElementById("rejectBtn");
 
-/* ================= UI Navigation ================= */
+/* ================= NAV ================= */
+const navMap = { login: navLogin, search: navSearch, requests: navRequests, friends: navFriends, chat: navChat };
+
 function showPage(name){
-  // Fade out effect
   Object.values(pages).forEach(p => p.classList.remove("active"));
+  Object.values(navMap).forEach(b => b.classList.remove("active-nav"));
   pages[name].classList.add("active");
+  if(navMap[name]) navMap[name].classList.add("active-nav");
 }
-navLogin.addEventListener("click", ()=> showPage("login"));
-navSearch.addEventListener("click", ()=> showPage("search"));
-navRequests.addEventListener("click", ()=> showPage("requests"));
-navFriends.addEventListener("click", ()=> showPage("friends"));
-navChat.addEventListener("click", ()=> showPage("chat"));
 
-/* ================= Render languages ================= */
+navLogin.addEventListener("click",    () => showPage("login"));
+navSearch.addEventListener("click",   () => showPage("search"));
+navRequests.addEventListener("click", () => showPage("requests"));
+navFriends.addEventListener("click",  () => showPage("friends"));
+navChat.addEventListener("click",     () => showPage("chat"));
+
+/* ================= LANGUAGE RENDERING ================= */
 function renderLangs(filter=""){
   langSelectEl.innerHTML = "";
-  langs.filter(l => l.name.toLowerCase().includes(filter.toLowerCase()))
+  langs.filter(l => l.name.toLowerCase().includes(filter.toLowerCase()) || l.code.includes(filter.toLowerCase()))
     .forEach(l => {
       const opt = document.createElement("option");
-      opt.value = l.code; opt.textContent = l.name;
+      opt.value = l.code;
+      opt.textContent = l.name;
+      if(l.code === userLang) opt.selected = true;
       langSelectEl.appendChild(opt);
     });
+
   chatLangSelect.innerHTML = "";
   langs.forEach(l => {
     const opt = document.createElement("option");
-    opt.value = l.code; opt.textContent = l.name;
+    opt.value = l.code;
+    opt.textContent = l.name;
+    if(l.code === userLang) opt.selected = true;
     chatLangSelect.appendChild(opt);
   });
-  if(!langSelectEl.value) langSelectEl.value = "ar";
-  chatLangSelect.value = userLang;
-  currentLangLabel.innerText = getLangName(userLang);
+
+  currentLangLbl.textContent = getLangName(userLang);
 }
+
 langSearchEl.addEventListener("input", e => renderLangs(e.target.value));
-chatLangSelect.addEventListener("change", async (e) => {
+chatLangSelect.addEventListener("change", async e => {
   userLang = e.target.value;
   localStorage.setItem("chat_lang", userLang);
   if(currentUser) await db.ref("users/" + currentUser).update({ lang: userLang });
-  currentLangLabel.innerText = getLangName(userLang);
+  currentLangLbl.textContent = getLangName(userLang);
+  chatSubtitleEl.textContent = "لغتك الحالية: " + getLangName(userLang);
 });
 renderLangs();
 
-/* ================= Auth: login / guest / restore / logout ================= */
+/* ================= AVATAR HELPER ================= */
+function getAvatar(name){
+  const emojis = ["😊","🦁","🐯","🦊","🐺","🦅","🐉","🌟","⚡","🔥","🌙","💎"];
+  const idx = name ? name.charCodeAt(0) % emojis.length : 0;
+  return emojis[idx];
+}
+
+/* ================= AUTH ================= */
 loginBtn.addEventListener("click", async () => {
   const name = usernameEl.value.trim();
   if(!name) return alert("أدخل اسم المستخدم");
-  
-  // Loading State
-  const origText = loginBtn.textContent;
-  loginBtn.textContent = "جارِ التسجيل...";
+  const origText = loginBtn.innerHTML;
+  loginBtn.innerHTML = "⏳ جارِ التسجيل...";
   loginBtn.disabled = true;
-
   try {
     currentUser = name;
     userLang = langSelectEl.value || "ar";
@@ -294,25 +1159,25 @@ loginBtn.addEventListener("click", async () => {
     usernameEl.disabled = true;
     navLogout.classList.remove("hidden");
     showPage("friends");
-    loadRequests(); loadFriends(); watchIncomingCalls(); setupTranscriptsListenerForUser(); updateReqBadge();
+    loadRequests(); loadFriends(); watchIncomingCalls(); updateReqBadge();
   } catch(e) {
-    alert("Error logging in: " + e.message);
+    alert("خطأ في التسجيل: " + e.message);
   } finally {
-    loginBtn.textContent = origText;
+    loginBtn.innerHTML = origText;
     loginBtn.disabled = false;
   }
 });
 
 guestBtn.addEventListener("click", async () => {
-  const name = "Guest_" + Math.floor(Math.random()*9000+1000);
-  usernameEl.value = name;
-  await loginBtn.click();
+  usernameEl.value = "Guest_" + Math.floor(Math.random()*9000+1000);
+  loginBtn.click();
 });
 
 navLogout.addEventListener("click", async () => {
   if(!currentUser) return;
   await db.ref("users/" + currentUser).update({ online: false, lastSeen: Date.now() });
-  localStorage.removeItem("chat_user"); localStorage.removeItem("chat_lang");
+  localStorage.removeItem("chat_user");
+  localStorage.removeItem("chat_lang");
   currentUser = null; userLang = "ar";
   usernameEl.disabled = false; usernameEl.value = "";
   navLogout.classList.add("hidden");
@@ -320,7 +1185,7 @@ navLogout.addEventListener("click", async () => {
   showPage("login");
 });
 
-/* restore */
+/* restore session */
 window.addEventListener("load", async () => {
   const saved = localStorage.getItem("chat_user");
   const savedLang = localStorage.getItem("chat_lang");
@@ -328,46 +1193,58 @@ window.addEventListener("load", async () => {
     currentUser = saved;
     userLang = savedLang || "ar";
     usernameEl.value = currentUser; usernameEl.disabled = true; navLogout.classList.remove("hidden");
+    renderLangs();
     await db.ref("users/" + currentUser).set({ lang: userLang, online: true, lastSeen: Date.now() });
-    loadRequests(); loadFriends(); watchIncomingCalls(); setupTranscriptsListenerForUser(); updateReqBadge();
-  }
-});
-window.addEventListener("beforeunload", async () => {
-  if(currentUser){
-    try{ await db.ref("users/" + currentUser).update({ online: false, lastSeen: Date.now() }); } catch(e){}
+    loadRequests(); loadFriends(); watchIncomingCalls(); updateReqBadge();
+    showPage("friends");
   }
 });
 
-/* ================= Search users ================= */
-userSearchEl.addEventListener("input", async (e) => {
+window.addEventListener("beforeunload", async () => {
+  if(currentUser){ try{ await db.ref("users/" + currentUser).update({ online: false, lastSeen: Date.now() }); }catch(e){} }
+});
+
+/* ================= SEARCH USERS ================= */
+userSearchEl.addEventListener("input", async e => {
   const q = e.target.value.trim().toLowerCase();
   userResultsEl.innerHTML = "";
-  if(!q) return;
+  if(!q){
+    userResultsEl.innerHTML = `<div class="empty-state"><span class="empty-icon">🔎</span><p>ابدأ بكتابة اسم للبحث</p></div>`;
+    return;
+  }
   const snap = await db.ref("users").once("value");
   const users = snap.val() || {};
+  let found = 0;
   for(const name in users){
     if(name.toLowerCase().includes(q) && name !== currentUser){
-      const row = document.createElement("div"); row.className="user-row";
-      const meta = document.createElement("div"); meta.className="meta";
-      meta.innerHTML = `<strong>${name}</strong><div class="muted">اللغة: ${getLangName(users[name].lang)}</div>`;
-      const actions = document.createElement("div"); actions.style.display="flex"; actions.style.gap="6px";
-      const sendBtn = document.createElement("button"); sendBtn.className="small"; sendBtn.textContent="إرسال طلب";
+      found++;
+      const row = document.createElement("div"); row.className = "user-row";
+      row.innerHTML = `
+        <div class="user-avatar">${getAvatar(name)}</div>
+        <div class="user-info">
+          <div class="user-name">${escapeHtml(name)}</div>
+          <div class="user-lang">🌐 ${getLangName(users[name].lang)}</div>
+        </div>
+        <div class="user-actions"></div>
+      `;
+      const actions = row.querySelector(".user-actions");
+      const sendBtn = document.createElement("button"); sendBtn.className = "btn btn-primary btn-sm"; sendBtn.textContent = "إضافة";
       sendBtn.onclick = () => sendFriendRequest(name);
-      const viewBtn = document.createElement("button"); viewBtn.className="small gray"; viewBtn.textContent="عرض";
-      viewBtn.onclick = () => alert("عرض ملف: " + name + "\n(ميزة توسّع لاحقاً)");
-      actions.appendChild(sendBtn); actions.appendChild(viewBtn);
-      row.appendChild(meta); row.appendChild(actions);
+      actions.appendChild(sendBtn);
       userResultsEl.appendChild(row);
     }
   }
+  if(!found){
+    userResultsEl.innerHTML = `<div class="empty-state"><span class="empty-icon">😕</span><p>لا توجد نتائج مطابقة</p></div>`;
+  }
 });
 
-/* ================= Friend requests ================= */
+/* ================= FRIEND REQUESTS ================= */
 async function sendFriendRequest(toUser){
   if(!currentUser) return alert("سجّل أولاً");
   if(toUser === currentUser) return;
   await db.ref("friendRequests/" + toUser + "/" + currentUser).set({ from: currentUser, ts: Date.now() });
-  alert("تم إرسال طلب صداقة إلى " + toUser);
+  alert("✅ تم إرسال طلب صداقة إلى " + toUser);
 }
 
 function loadRequests(){
@@ -377,17 +1254,25 @@ function loadRequests(){
     requestsListEl.innerHTML = "";
     const keys = Object.keys(data);
     if(keys.length === 0){
-      requestsListEl.innerHTML = "<div class='muted'>لا توجد طلبات واردة</div>";
+      requestsListEl.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>لا توجد طلبات واردة</p></div>`;
       return;
     }
     for(const fromUser in data){
-      const row = document.createElement("div"); row.className="user-row";
-      row.innerHTML = `<div class="meta"><strong>${fromUser}</strong><div class="muted">طلب صداقة وارد</div></div>`;
-      const acceptBtn = document.createElement("button"); acceptBtn.className="small"; acceptBtn.textContent="قبول";
+      const row = document.createElement("div"); row.className = "user-row";
+      row.innerHTML = `
+        <div class="user-avatar">${getAvatar(fromUser)}</div>
+        <div class="user-info">
+          <div class="user-name">${escapeHtml(fromUser)}</div>
+          <div class="user-lang">📨 طلب صداقة وارد</div>
+        </div>
+        <div class="user-actions"></div>
+      `;
+      const actions = row.querySelector(".user-actions");
+      const acceptBtn = document.createElement("button"); acceptBtn.className = "btn btn-success btn-sm"; acceptBtn.textContent = "✅ قبول";
       acceptBtn.onclick = () => acceptRequest(fromUser);
-      const rejectBtn = document.createElement("button"); rejectBtn.className="small gray"; rejectBtn.textContent="رفض";
-      rejectBtn.onclick = () => rejectRequest(fromUser);
-      row.appendChild(acceptBtn); row.appendChild(rejectBtn);
+      const rBtn = document.createElement("button"); rBtn.className = "btn btn-danger btn-sm"; rBtn.textContent = "❌ رفض";
+      rBtn.onclick = () => rejectRequest(fromUser);
+      actions.appendChild(acceptBtn); actions.appendChild(rBtn);
       requestsListEl.appendChild(row);
     }
     updateReqBadge();
@@ -399,44 +1284,53 @@ async function acceptRequest(fromUser){
   await db.ref("friends/" + currentUser + "/" + fromUser).set(true);
   await db.ref("friends/" + fromUser + "/" + currentUser).set(true);
   await db.ref("friendRequests/" + currentUser + "/" + fromUser).remove();
-  alert("تم قبول " + fromUser);
+  alert("✅ تم قبول " + fromUser);
 }
 
 async function rejectRequest(fromUser){
   if(!currentUser) return;
   await db.ref("friendRequests/" + currentUser + "/" + fromUser).remove();
-  alert("تم رفض " + fromUser);
+  alert("تم رفض الطلب");
 }
 
 function updateReqBadge(){
-  if(!currentUser) { reqBadge.classList.add("hidden"); return; }
+  if(!currentUser){ reqBadge.classList.add("hidden"); return; }
   db.ref("friendRequests/" + currentUser).once("value").then(snap=>{
     const n = snap.val() ? Object.keys(snap.val()).length : 0;
-    if(n>0){ reqBadge.textContent = n; reqBadge.classList.remove("hidden"); } else { reqBadge.classList.add("hidden"); }
+    if(n>0){ reqBadge.textContent = n; reqBadge.classList.remove("hidden"); }
+    else { reqBadge.classList.add("hidden"); }
   });
 }
 
-/* ================= Friends list ================= */
+/* ================= FRIENDS LIST ================= */
 function loadFriends(){
   if(!currentUser) return;
   db.ref("friends/" + currentUser).on("value", snap => {
     const data = snap.val() || {};
     friendsListEl.innerHTML = "";
     const keys = Object.keys(data);
-    if(keys.length===0){
-      friendsListEl.innerHTML = "<div class='muted'>لم تقبل أصدقاء بعد.</div>";
+    if(keys.length === 0){
+      friendsListEl.innerHTML = `<div class="empty-state"><span class="empty-icon">👤</span><p>لم تضف أصدقاء بعد. ابحث عن مستخدمين من صفحة البحث</p></div>`;
       return;
     }
     for(const friend in data){
-      const row = document.createElement("div"); row.className="user-row";
-      const meta = document.createElement("div"); meta.className="meta"; meta.innerHTML = `<strong>${friend}</strong>`;
-      const chatBtn = document.createElement("button"); chatBtn.className="small"; chatBtn.textContent="دردشة";
-      chatBtn.onclick = ()=> openChat(friend);
-      const callBtn = document.createElement("button"); callBtn.className="small gray"; callBtn.textContent="📞 مكالمة";
-      callBtn.onclick = ()=> initiateCall(friend);
-      const removeBtn = document.createElement("button"); removeBtn.className="small gray"; removeBtn.textContent="حذف";
-      removeBtn.onclick = ()=> removeFriend(friend);
-      row.appendChild(meta); row.appendChild(chatBtn); row.appendChild(callBtn); row.appendChild(removeBtn);
+      const row = document.createElement("div"); row.className = "user-row";
+      row.innerHTML = `
+        <div class="user-avatar">${getAvatar(friend)}</div>
+        <div class="user-info">
+          <div class="user-name">${escapeHtml(friend)}</div>
+          <div class="user-lang">💬 صديق</div>
+        </div>
+        <div class="user-actions"></div>
+      `;
+      const actions = row.querySelector(".user-actions");
+      const chatBtn = document.createElement("button"); chatBtn.className = "btn btn-primary btn-sm"; chatBtn.innerHTML = "💬 دردشة";
+      chatBtn.onclick = () => openChat(friend);
+      const callBtn = document.createElement("button"); callBtn.className = "btn btn-secondary btn-sm"; callBtn.innerHTML = "📞";
+      callBtn.onclick = () => initiateCall(friend);
+      const removeBtn = document.createElement("button"); removeBtn.className = "btn btn-danger btn-sm"; removeBtn.innerHTML = "🗑️";
+      removeBtn.onclick = () => removeFriend(friend);
+      actions.appendChild(chatBtn); actions.appendChild(callBtn); actions.appendChild(removeBtn);
       friendsListEl.appendChild(row);
     }
   });
@@ -444,176 +1338,139 @@ function loadFriends(){
 
 async function removeFriend(name){
   if(!currentUser) return;
-  if(!confirm("هل تريد حذف " + name + "؟")) return;
+  if(!confirm("هل تريد حذف " + name + " من قائمة الأصدقاء؟")) return;
   await db.ref("friends/" + currentUser + "/" + name).remove();
   await db.ref("friends/" + name + "/" + currentUser).remove();
-  alert("تم الحذف");
 }
 
-/* ================= Chat: open/send/render (with auto-translate) ================= */
+/* ================= CHAT ================= */
 function getChatId(a,b){ return [a,b].sort().join("_"); }
 
 function openChat(peer){
   currentPeer = peer;
   currentChatId = getChatId(currentUser, peer);
-  chatTitleEl.textContent = "💬 دردشة مع: " + peer;
-  chatSubtitleEl.textContent = "اللغة الحالية: " + getLangName(userLang);
+  chatTitleEl.textContent = peer;
+  chatAvatarEl.textContent = getAvatar(peer);
+  chatSubtitleEl.textContent = "لغتك الحالية: " + getLangName(userLang);
   chatBoxEl.innerHTML = "";
   showPage("chat");
 
-  // listen for messages
   db.ref("chats/" + currentChatId + "/messages").off();
   db.ref("chats/" + currentChatId + "/messages").on("child_added", async snap => {
-    const data = snap.val();
-    await renderMessageWithTranslation(data);
+    await renderMessageWithTranslation(snap.val());
   });
 }
 
-/* render message: translate automatically to user's language and show audio and text */
 async function renderMessageWithTranslation(data){
   const el = document.createElement("div");
   el.className = "msg " + (data.sender === currentUser ? "me" : "other");
-  
+
+  const timeStr = data.timestamp ? new Date(data.timestamp).toLocaleTimeString("ar-SA", {hour:"2-digit", minute:"2-digit"}) : "";
+
   if(data.type === "media"){
     if(data.mediaType && data.mediaType.startsWith("image")){
-      el.innerHTML = `<b>${escapeHtml(data.sender)}:</b><br><img src="${data.text}" alt="image">`;
+      el.innerHTML = `<div class="msg-sender">${escapeHtml(data.sender)}</div><img src="${data.text}" alt="صورة"><div class="msg-time">${timeStr}</div>`;
     } else {
-      el.innerHTML = `<b>${escapeHtml(data.sender)}:</b><br><video src="${data.text}" controls></video>`;
+      el.innerHTML = `<div class="msg-sender">${escapeHtml(data.sender)}</div><video src="${data.text}" controls></video><div class="msg-time">${timeStr}</div>`;
     }
   } else if(data.type === "voice"){
-    el.innerHTML = `<b>${escapeHtml(data.sender)}:</b><br><audio src="${data.audioUrl}" controls></audio>`;
+    el.innerHTML = `<div class="msg-sender">${escapeHtml(data.sender)}</div><audio src="${data.audioUrl}" controls></audio>`;
     if(data.transcript){
-      const tdiv = document.createElement("div"); tdiv.className="muted";
-      tdiv.textContent = `${data.sender} (النص): ${data.transcript}`;
-      el.appendChild(tdiv);
       const translated = await translateText(data.transcript, userLang);
-      const tr = document.createElement("div"); tr.className="muted";
-      tr.innerHTML = `→ ترجمة (${data.lang || 'auto'} → ${userLang}): ${escapeHtml(translated)} <button class="small" onclick="speakText('${escapeJs(translated)}','${userLang}')">🔊</button>`;
+      const tr = document.createElement("div"); tr.className = "msg-translate";
+      tr.innerHTML = `🔊 ${escapeHtml(translated)} <button class="speak-btn" onclick="speakText('${escapeJs(translated)}','${userLang}')">🔈</button>`;
       el.appendChild(tr);
-    } else {
-      const note = document.createElement("div"); note.className="muted";
-      note.textContent = "لا يوجد تفريغ صوتي (transcript).";
-      el.appendChild(note);
     }
-  } else { 
+    const timeDiv = document.createElement("div"); timeDiv.className = "msg-time"; timeDiv.textContent = timeStr;
+    el.appendChild(timeDiv);
+  } else {
     const translated = await translateText(data.text, userLang);
-    el.innerHTML = `<b>${escapeHtml(data.sender)}:</b> ${escapeHtml(translated)}`;
-    if(data.lang && data.lang !== userLang){
-      const orig = document.createElement("div"); orig.className="muted";
-      orig.textContent = `(${data.lang}) الأصلي: ${escapeHtml(data.text)}`;
+    el.innerHTML = `<div class="msg-sender">${escapeHtml(data.sender)}</div>${escapeHtml(translated)}`;
+    if(data.lang && data.lang !== userLang && data.text !== translated){
+      const orig = document.createElement("div"); orig.className = "msg-original";
+      orig.textContent = `(${getLangName(data.lang)}): ${data.text}`;
       el.appendChild(orig);
     }
+    const timeDiv = document.createElement("div"); timeDiv.className = "msg-time"; timeDiv.textContent = timeStr;
+    el.appendChild(timeDiv);
   }
+
   chatBoxEl.appendChild(el);
   chatBoxEl.scrollTop = chatBoxEl.scrollHeight;
 }
 
-/* send text message */
+/* send text */
 sendBtnEl.addEventListener("click", async () => {
-  if(!currentPeer) return alert("اختر صديقاً أولاً من صفحة الأصدقاء");
+  if(!currentPeer) return alert("اختر صديقاً أولاً من قائمة الأصدقاء");
   const text = msgInputEl.value.trim();
   if(!text) return;
-  const id = currentChatId || getChatId(currentUser, currentPeer);
-  await db.ref("chats/" + id + "/messages").push({
-    sender: currentUser, text, lang: userLang || 'auto', type: "text", timestamp: Date.now()
+  await db.ref("chats/" + (currentChatId || getChatId(currentUser, currentPeer)) + "/messages").push({
+    sender: currentUser, text, lang: userLang || 'ar', type: "text", timestamp: Date.now()
   });
   msgInputEl.value = "";
 });
 
-/* send media file */
+msgInputEl.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendBtnEl.click(); } });
+
+/* send file */
 sendFileBtnEl.addEventListener("click", async () => {
   if(!currentPeer) return alert("اختر صديقاً أولاً");
   const f = fileInputEl.files[0];
   if(!f) return alert("اختر ملفاً");
-  
-  // File Upload Loading State
-  const origText = sendFileBtnEl.textContent;
-  sendFileBtnEl.textContent = "جارِ الرفع...";
+  const origText = sendFileBtnEl.innerHTML;
+  sendFileBtnEl.innerHTML = "⏳ جارِ الرفع...";
   sendFileBtnEl.disabled = true;
-
   const path = "chatFiles/" + Date.now() + "_" + sanitizeFilename(f.name);
-  const storageRef = storage.ref(path);
-  const uploadTask = storageRef.put(f);
-  
-  uploadTask.on('state_changed', null, err => {
+  const ref = storage.ref(path);
+  const task = ref.put(f);
+  task.on('state_changed', null, err => {
     alert("خطأ بالرفع: " + err.message);
-    sendFileBtnEl.textContent = origText;
-    sendFileBtnEl.disabled = false;
+    sendFileBtnEl.innerHTML = origText; sendFileBtnEl.disabled = false;
   }, async () => {
-    const url = await storageRef.getDownloadURL();
-    const id = currentChatId || getChatId(currentUser, currentPeer);
-    await db.ref("chats/" + id + "/messages").push({
+    const url = await ref.getDownloadURL();
+    await db.ref("chats/" + (currentChatId || getChatId(currentUser, currentPeer)) + "/messages").push({
       sender: currentUser, text: url, lang: userLang, type: "media", mediaType: f.type, timestamp: Date.now()
     });
     fileInputEl.value = "";
-    sendFileBtnEl.textContent = origText;
-    sendFileBtnEl.disabled = false;
+    sendFileBtnEl.innerHTML = origText; sendFileBtnEl.disabled = false;
   });
 });
 
-/* ================= Voice recording ================= */
+/* voice recording */
 recordVoiceBtn.addEventListener("click", async () => {
   if(!currentPeer) return alert("اختر صديقاً أولاً");
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!navigator.mediaDevices || !SpeechRecognition){
-    return alert("المتصفح لا يدعم التسجيل أو SpeechRecognition. استخدم Chrome/Edge.");
-  }
-
+  if(!navigator.mediaDevices || !SpeechRecognition) return alert("المتصفح لا يدعم التسجيل. استخدم Chrome/Edge.");
   let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch(err) {
-    return alert("فشل بالحصول على المايك: " + err.message);
-  }
-
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch(err){ return alert("فشل الوصول للميكروفون: " + err.message); }
   const recorder = new MediaRecorder(stream);
   const chunks = [];
   recorder.ondataavailable = e => chunks.push(e.data);
-
-  const rec = new SpeechRecognition();
-  rec.lang = userLang || 'ar';
-  rec.interimResults = false;
-  rec.continuous = false;
-
+  const rec = new SpeechRecognition(); rec.lang = userLang || 'ar'; rec.interimResults = false; rec.continuous = false;
   let finalTranscript = "";
-
-  rec.onresult = (ev) => {
-    const last = ev.results[ev.resultIndex];
-    finalTranscript += last[0].transcript.trim();
-  };
-  rec.onerror = (e) => console.warn("recognition error", e);
-
-  try { rec.start(); } catch(e){}
+  rec.onresult = ev => { finalTranscript += ev.results[ev.resultIndex][0].transcript.trim(); };
+  try{ rec.start(); }catch(e){}
   recorder.start();
-
-  recordVoiceBtn.textContent = "⏹️ تسجيل..."; recordVoiceBtn.disabled = true;
+  recordVoiceBtn.innerHTML = "⏹️ يسجّل..."; recordVoiceBtn.disabled = true;
   setTimeout(async () => {
-    recorder.stop();
-    try{ rec.stop(); } catch(e){}
-    recordVoiceBtn.textContent = "🎤 تسجيل صوتي (إرسال)"; recordVoiceBtn.disabled = false;
-    stream.getTracks().forEach(t=>t.stop());
+    recorder.stop(); try{ rec.stop(); }catch(e){}
+    recordVoiceBtn.innerHTML = "🎤 تسجيل"; recordVoiceBtn.disabled = false;
+    stream.getTracks().forEach(t => t.stop());
   }, 4000);
-
   recorder.onstop = async () => {
     const blob = new Blob(chunks, { type: 'audio/webm' });
-    const filename = "voices/" + Date.now() + "_" + currentUser + ".webm";
-    const ref = storage.ref(filename);
+    const fn = "voices/" + Date.now() + "_" + currentUser + ".webm";
+    const ref = storage.ref(fn);
     await ref.put(blob);
     const url = await ref.getDownloadURL();
-
-    const id = currentChatId || getChatId(currentUser, currentPeer);
-    await db.ref("chats/" + id + "/messages").push({
-      sender: currentUser,
-      type: "voice",
-      audioUrl: url,
-      transcript: finalTranscript || "",
-      lang: userLang || 'auto',
-      timestamp: Date.now()
+    await db.ref("chats/" + (currentChatId || getChatId(currentUser, currentPeer)) + "/messages").push({
+      sender: currentUser, type: "voice", audioUrl: url, transcript: finalTranscript || "", lang: userLang || 'ar', timestamp: Date.now()
     });
   };
 });
 
-/* ================= Translate helper ================= */
+/* ================= TRANSLATE ================= */
 async function translateText(text, target){
   if(!text) return "";
   try{
@@ -621,85 +1478,48 @@ async function translateText(text, target){
     const res = await fetch(url);
     const data = await res.json();
     return (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : text;
-  } catch(err){
-    console.error("translate error", err);
-    return text;
-  }
+  }catch(err){ return text; }
 }
 
-/* ================= Speech Synthesis ================= */
 function speakText(text, lang){
-  try{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang;
-    window.speechSynthesis.speak(u);
-  } catch(e){ console.error("speak error", e); }
+  try{ const u = new SpeechSynthesisUtterance(text); u.lang = lang; window.speechSynthesis.speak(u); }catch(e){}
 }
 
-/* ================= Stubs to Prevent Crash ================= */
-// Prevents crash when these functions from your original structure are called
-function setupTranscriptsListenerForUser() {
-  console.log("Transcripts listener initialized.");
-}
+function setupTranscriptsListenerForUser(){}
+function startSpeechRecognitionAndTranslate(chatId, lang){}
 
-function startSpeechRecognitionAndTranslate(chatId, lang) {
-  console.log(`Live STT started for call ${chatId} in language ${lang}`);
-}
-
-/* ================= WebRTC Calling ================= */
+/* ================= WEBRTC ================= */
 async function initiateCall(peerName){
   if(!currentUser) return alert("سجّل أولاً");
-  if(!peerName) return;
   currentPeer = peerName;
   const chatId = getChatId(currentUser, peerName);
   currentChatId = chatId;
-
-  await db.ref("calls/" + chatId + "/meta").set({
-    from: currentUser, to: peerName, callerLang: userLang, timestamp: Date.now()
-  });
-
+  await db.ref("calls/" + chatId + "/meta").set({ from: currentUser, to: peerName, callerLang: userLang, timestamp: Date.now() });
   pc = new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-
-  try { localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false }); }
+  try{ localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false }); }
   catch(err){ return alert("فشل بالحصول على الميكروفون: " + err.message); }
   localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-
   const candRef = db.ref("calls/" + chatId + "/candidates");
   pc.onicecandidate = e => { if(e.candidate) candRef.push(JSON.stringify(e.candidate)); };
-
   pc.ontrack = ev => {
     const audio = document.createElement("audio"); audio.autoplay = true; audio.srcObject = ev.streams[0]; audio.style.display="none";
     document.body.appendChild(audio);
   };
-
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   await db.ref("calls/" + chatId + "/offer").set(JSON.stringify(offer));
-
   db.ref("calls/" + chatId + "/answer").on("value", async snap => {
     const val = snap.val();
     if(val && pc && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(val));
-      startSpeechRecognitionAndTranslate(chatId, userLang);
-      isInCall = true;
-      endCallBtn.classList.remove("hidden");
+      isInCall = true; endCallBtn.classList.remove("hidden");
       chatTitleEl.textContent = `📞 في مكالمة مع ${peerName}`;
+      showPage("chat");
     }
   });
-
   db.ref("calls/" + chatId + "/candidates").on("child_added", async snap => {
     const v = snap.val();
-    if(v && pc) {
-      try { await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(v))); } catch(e){}
-    }
-  });
-
-  db.ref("calls/" + chatId + "/transcripts").on("child_added", snap => {
-    const d = snap.val();
-    if(!d) return;
-    const el = document.createElement("div"); el.className="msg me";
-    el.innerHTML = `<b>🔁 ترجمة (${d.source}→${d.target}):</b> ${escapeHtml(d.translated)}`;
-    chatBoxEl.appendChild(el); chatBoxEl.scrollTop = chatBoxEl.scrollHeight;
+    if(v && pc){ try{ await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(v))); }catch(e){} }
   });
 }
 
@@ -711,7 +1531,8 @@ function watchIncomingCalls(){
     const meta = val.meta;
     if(meta.to === currentUser && !isInCall){
       incomingCallId = chatId; incomingCaller = meta.from;
-      callerTxtEl.textContent = `📞 اتصال وارد من: ${incomingCaller}`;
+      callerTxtEl.textContent = incomingCaller;
+      document.querySelector("#incomingCall .caller-sub").textContent = "يريد التحدث معك";
       incomingCallEl.style.display = "block";
     }
   });
@@ -721,98 +1542,58 @@ answerBtn.addEventListener("click", async () => {
   if(!incomingCallId) return;
   incomingCallEl.style.display = "none";
   const metaSnap = await db.ref("calls/" + incomingCallId + "/meta").once("value");
-  const meta = metaSnap.val(); if(!meta) return alert("لا توجد بيانات للمكالمة");
+  const meta = metaSnap.val(); if(!meta) return;
   currentPeer = meta.from; currentChatId = incomingCallId;
-
   pc = new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
   try{ localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
   catch(err){ return alert("فشل بالحصول على المايك: " + err.message); }
   localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-
   pc.ontrack = ev => {
     const audio = document.createElement("audio"); audio.autoplay = true; audio.srcObject = ev.streams[0]; audio.style.display="none";
     document.body.appendChild(audio);
   };
-
   const candRef = db.ref("calls/" + incomingCallId + "/candidates");
   pc.onicecandidate = e => { if(e.candidate) candRef.push(JSON.stringify(e.candidate)); };
-
   const offerSnap = await db.ref("calls/" + incomingCallId + "/offer").once("value");
-  const offer = offerSnap.val(); if(!offer) return alert("لا يوجد عرض");
+  const offer = offerSnap.val(); if(!offer) return;
   await pc.setRemoteDescription(JSON.parse(offer));
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
   await db.ref("calls/" + incomingCallId + "/answer").set(JSON.stringify(answer));
-
   db.ref("calls/" + incomingCallId + "/candidates").on("child_added", async snap => {
-    const v = snap.val(); if(v && pc) { try{ await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(v))); } catch(e){} }
+    const v = snap.val(); if(v && pc){ try{ await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(v))); }catch(e){} }
   });
-
-  db.ref("calls/" + incomingCallId + "/transcripts").on("child_added", async snap => {
-    const d = snap.val(); if(!d) return;
-    if(d.to === currentUser){
-      speakText(d.translated, d.target);
-      const el = document.createElement("div"); el.className="msg other";
-      el.innerHTML = `<b>🔁 (${d.from}→${d.target}):</b> ${escapeHtml(d.translated)}`;
-      chatBoxEl.appendChild(el); chatBoxEl.scrollTop = chatBoxEl.scrollHeight;
-    }
-  });
-
-  isInCall = true; endCallBtn.classList.remove("hidden"); chatTitleEl.textContent = `📞 في مكالمة مع ${currentPeer}`;
+  isInCall = true; endCallBtn.classList.remove("hidden");
+  chatTitleEl.textContent = `📞 في مكالمة مع ${currentPeer}`;
+  chatAvatarEl.textContent = "📞";
+  showPage("chat");
 });
 
-/* reject incoming call */
 rejectBtn.addEventListener("click", async () => {
-  if(!incomingCallId){ 
-    incomingCallEl.style.display="none"; 
-    return; 
-  }
-  await db.ref("calls/" + incomingCallId).remove();
-  incomingCallId = null; 
-  incomingCallEl.style.display = "none";
+  if(incomingCallId) await db.ref("calls/" + incomingCallId).remove();
+  incomingCallId = null; incomingCallEl.style.display = "none";
 });
 
-/* end active call */
 endCallBtn.addEventListener("click", async () => {
-  if(!currentChatId) return;
-  await db.ref("calls/" + currentChatId).remove();
+  if(currentChatId) await db.ref("calls/" + currentChatId).remove();
   cleanupCall();
 });
 
-/* Call Cleanup Routine */
-function cleanupCall() {
-  if (pc) {
-    pc.close();
-    pc = null;
-  }
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-    localStream = null;
-  }
-  isInCall = false;
-  endCallBtn.classList.add("hidden");
-  if (currentPeer) {
-    chatTitleEl.textContent = "💬 دردشة مع: " + currentPeer;
-  }
+function cleanupCall(){
+  if(pc){ pc.close(); pc = null; }
+  if(localStream){ localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  isInCall = false; endCallBtn.classList.add("hidden");
+  if(currentPeer){ chatTitleEl.textContent = currentPeer; chatAvatarEl.textContent = getAvatar(currentPeer); }
 }
 
-/* ================= Security & Formatting Helpers ================= */
-function escapeHtml(unsafe) {
-    return (unsafe || "").toString()
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+/* ================= SECURITY HELPERS ================= */
+function escapeHtml(unsafe){
+  return (unsafe||"").toString()
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 }
-
-function escapeJs(unsafe) {
-    return (unsafe || "").toString().replace(/'/g, "\\'");
-}
-
-function sanitizeFilename(name) {
-    return name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
-}
+function escapeJs(unsafe){ return (unsafe||"").toString().replace(/'/g,"\\'"); }
+function sanitizeFilename(name){ return name.replace(/[^a-z0-9.]/gi,'_').toLowerCase(); }
 </script>
 </body>
 </html>
